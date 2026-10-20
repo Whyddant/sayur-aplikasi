@@ -7,14 +7,14 @@
  *
  *  Setiap kali Anda mengubah file aplikasi, naikkan angka VERSI di bawah.
  */
-var VERSI = 'sayur-app-v3';
+var VERSI = 'sayur-app-v2';
 
 var INTI = [
   './', './index.html', './sayur-app.html', './storage.js', './manifest.json',
   './halaman.css', './halaman.js',
   './pengaturan.html', './panduan.html', './tentang.html', './bantuan.html',
   './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png',
-  './icons/apple-touch-icon.png', './icons/favicon-48.png', './icons/logo.png'
+  './icons/apple-touch-icon.png', './icons/favicon-48.png'
 ];
 
 self.addEventListener('install', function (e) {

@@ -5227,8 +5227,18 @@ Pages.belanja = {title: 'Belanja — H. Mawih Sayur', run: function(){
   }
   function rebuildDaftar(){ DAFTAR = Object.keys(MASTER); }
 
+  /* Belanja terakhir per barang (qty, harga beli/jual, tanggal) — jadi acuan default berikutnya */
+  var LAST_KEY = 'mawih_last_v1';
+  function readLast(){
+    try{ return JSON.parse(localStorage.getItem(LAST_KEY)) || {}; }catch(e){ return {}; }
+  }
+  function writeLast(map){
+    try{ localStorage.setItem(LAST_KEY, JSON.stringify(map)); }catch(e){}
+  }
+
   function loadMaster(){
     seedToMaster();
+    var hasQty = {};
     return Promise.all([
       SayurStorage.get('getHargaMaster').catch(function(){ return []; }),
       SayurStorage.get('getNamaBarangMaster').catch(function(){ return []; })
@@ -5243,6 +5253,7 @@ Pages.belanja = {title: 'Belanja — H. Mawih Sayur', run: function(){
         if(h.Satuan) m.satuan = h.Satuan;
         if(Number(h.HargaBeli) > 0) m.beli = Number(h.HargaBeli);
         if(Number(h.HargaJual) > 0) m.jual = Number(h.HargaJual);
+        if(Number(h.Qty) > 0){ m.defQty = String(h.Qty); hasQty[n] = true; }
       });
       (names || []).forEach(function(n){
         if(!MASTER[n]) MASTER[n] = { satuan: 'kg', beli: 0, jual: 0, defQty: '' };
@@ -5251,15 +5262,31 @@ Pages.belanja = {title: 'Belanja — H. Mawih Sayur', run: function(){
       d.setDate(d.getDate() - 1);
       return SayurStorage.get('getBelanja', {tanggal: ymd(d)}).catch(function(){ return []; });
     }).then(function(list){
+      var yd = new Date(); yd.setDate(yd.getDate() - 1);
+      var yTgl = ymd(yd), yNames = {};
       (list || []).forEach(function(b){
         var n = b.NamaBarang;
         if(!n) return;
+        yNames[n] = true;
+        if(hasQty[n]) return;   /* harga master sudah menyimpan belanja terakhir */
         if(!MASTER[n]) MASTER[n] = { satuan: 'kg', beli: 0, jual: 0, defQty: '' };
         var m = MASTER[n];
         if(Number(b.Qty) > 0) m.defQty = String(b.Qty);
         if(Number(b.HargaBeli) > 0) m.beli = Number(b.HargaBeli);
         if(Number(b.HargaJual) > 0) m.jual = Number(b.HargaJual);
         if(b.Satuan) m.satuan = b.Satuan;
+      });
+      /* Belanja terakhir yang tersimpan di HP: dipakai jika lebih baru dari data kemarin,
+         atau jika kemarin barang itu tidak dibeli */
+      var last = readLast();
+      Object.keys(last).forEach(function(n){
+        var L = last[n];
+        if(!L || !MASTER[n]) return;
+        if((yNames[n] || hasQty[n]) && L.tgl < yTgl) return;
+        var m = MASTER[n];
+        if(Number(L.qty) > 0) m.defQty = String(L.qty);
+        if(Number(L.beli) > 0) m.beli = Number(L.beli);
+        if(Number(L.jual) > 0) m.jual = Number(L.jual);
       });
       rebuildDaftar();
     }).catch(function(){ rebuildDaftar(); });
@@ -6176,7 +6203,8 @@ Pages.belanja = {title: 'Belanja — H. Mawih Sayur', run: function(){
             namaBarang: n,
             satuan: unitOf(n),
             hargaBeli: d.beli,
-            hargaJual: d.jual
+            hargaJual: d.jual,
+            qty: d.qty
           }
         });
       }
@@ -6239,7 +6267,17 @@ Pages.belanja = {title: 'Belanja — H. Mawih Sayur', run: function(){
       if(idx >= jobs.length){
         fab.classList.remove('busy');
         toast('✓ Tersimpan ke database');
-        names.forEach(function(n){ state.items[n].chk = false; });
+        var last = readLast();
+        names.forEach(function(n){
+          var d = state.items[n], m = masterOf(n);
+          /* Qty & harga yang baru dibeli jadi default belanja berikutnya */
+          if(d.qty > 0) m.defQty = String(d.qty);
+          if(d.beli > 0) m.beli = d.beli;
+          if(d.jual > 0) m.jual = d.jual;
+          last[n] = { qty: d.qty, beli: d.beli, jual: d.jual, tgl: tanggal };
+          d.chk = false; d.qty = 0; d.beli = 0; d.jual = 0;
+        });
+        writeLast(last);
         save();
         render();
         return;
@@ -8280,6 +8318,11 @@ Pages.belanja = {title: 'Belanja — H. Mawih Sayur', run: function(){
 
     loadMaster().then(function(){
       load();
+      /* Barang yang tidak dicentang tidak menyimpan nilai lama; default diambil ulang dari belanja terakhir */
+      Object.keys(state.items).forEach(function(n){
+        var d = state.items[n];
+        if(!d.chk){ d.qty = 0; d.beli = 0; d.jual = 0; }
+      });
       SET_KEYS.forEach(function(k){ $(k).value = fmtNum(state.set[k]); });
       render();
       updateFab();
@@ -9830,7 +9873,6 @@ Pages.laporan = {title: 'Laporan — H. Mawih Sayur', run: function(){
      ========================================================== */
   function renderSaldo(){
     var el = $('panel-saldo');
-    if(!el) return;   // halaman Laporan sudah ditinggalkan
     var s = hitungSaldo();
     var html = pitaSumber('mutasi');
 
@@ -9997,7 +10039,6 @@ Pages.laporan = {title: 'Laporan — H. Mawih Sayur', run: function(){
      ========================================================== */
   function renderHutang(){
     var el = $('panel-hutang');
-    if(!el) return;
     var piutang = App.hutang.filter(function(h){ return h.Tipe === 'PiutangSaya'; });
     var hutang = App.hutang.filter(function(h){ return h.Tipe === 'HutangSaya'; });
     var totalPiutang = piutang.filter(function(h){ return h.Status !== 'Lunas'; })
@@ -10108,7 +10149,6 @@ Pages.laporan = {title: 'Laporan — H. Mawih Sayur', run: function(){
 
   function renderRiwayat(){
     var el = $('panel-riwayat');
-    if(!el) return;
     var list = App.riwayat.slice().sort(function(a, b){
       return String(b.Tanggal).localeCompare(String(a.Tanggal));
     });
@@ -10802,21 +10842,12 @@ Pages.laporan = {title: 'Laporan — H. Mawih Sayur', run: function(){
     setTab(Router.tabParam());
     segarkan();
 
-    /* Listener global: hanya aktif selama halaman Laporan tampil, lalu melepas diri */
-    function aktif(){ return !!$('panel-saldo'); }
-    function lepas(){
-      window.removeEventListener('online', onOnline);
-      window.removeEventListener('offline', updateStatus);
-      window.removeEventListener('sayur:sync', onSync);
-      window.removeEventListener('pageshow', onShow);
-    }
-    function onOnline(){ if(!aktif()) return lepas(); updateStatus(); segarkan(); }
-    function onSync(){ if(!aktif()) return lepas(); segarkan(); }   // antrean selesai terkirim
-    function onShow(e){ if(!aktif()) return lepas(); if(e.persisted) segarkan(); }
-    window.addEventListener('online', onOnline);
+    window.addEventListener('online', function(){ updateStatus(); segarkan(); });
     window.addEventListener('offline', updateStatus);
-    window.addEventListener('sayur:sync', onSync);
-    window.addEventListener('pageshow', onShow);
+    /* antrean SyncUI selesai mengirim -> data server sudah berubah */
+    window.addEventListener('sayur:sync', function(){ segarkan(); });
+    /* kembali dari bfcache */
+    window.addEventListener('pageshow', function(e){ if(e.persisted) segarkan(); });
   }
 
   if(document.readyState === 'loading'){
