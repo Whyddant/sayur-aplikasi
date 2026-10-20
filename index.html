@@ -2972,7 +2972,7 @@ body.sheet-open .toast{bottom:auto;top:calc(68px + 8px)}
       </div>
       <div class="field">
         <label for="liburCustom">Atau tulis sendiri</label>
-        <input type="text" id="liburCustom" placeholder="mis. lebaran panjang" autocomplete="off">
+        <input type="text" id="liburCustom" placeholder="Keterangan libur" autocomplete="off">
       </div>
     </div>
     <div class="sheet-actions">
@@ -3015,7 +3015,7 @@ body.sheet-open .toast{bottom:auto;top:calc(68px + 8px)}
     <div class="search-inner">
       <div class="search-field">
         <svg class="search-ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-        <input type="text" id="searchInput" placeholder="Cari barang..." autocomplete="off">
+        <input type="text" id="searchInput" placeholder="Cari barang" autocomplete="off">
         <button type="button" class="search-clear" id="searchClear" hidden aria-label="Bersihkan"><span>✕</span></button>
       </div>
       <button type="button" class="add-btn" id="addBtn" hidden>+ Tambah</button>
@@ -3562,7 +3562,7 @@ body.sheet-open .toast{bottom:auto;top:calc(68px + 8px)}
       <div class="field">
         <label>Catatan (opsional)</label>
         <div class="money-in">
-          <input type="text" id="mutCatatan" class="teks" placeholder="mis. tambah cabe" autocomplete="off">
+          <input type="text" id="mutCatatan" class="teks" placeholder="Tambahkan catatan" autocomplete="off">
         </div>
       </div>
     </div>
@@ -6825,11 +6825,11 @@ Pages.belanja = {title: 'Belanja — H. Mawih Sayur', run: function(){
           '<input type="date" id="' + p + 'Tgl" value="' + escHtml(d.tanggal) + '"></div>' +
         '<div class="field"><label for="' + p + 'Nama">Nama' + (opt.namaWajib ? '' : ' (opsional)') + '</label>' +
           '<input type="text" id="' + p + 'Nama" value="' + escHtml(d.nama) + '" placeholder="' +
-          (opt.namaWajib ? 'mis. Bu Sari' : 'Opsional') + '" autocomplete="off"></div>' +
+          (opt.namaWajib ? 'Nama pelanggan' : 'Tambahkan nama') + '" autocomplete="off"></div>' +
         '<div class="field"><label for="' + p + 'HP">No HP (opsional)</label>' +
-          '<input type="tel" id="' + p + 'HP" value="' + escHtml(d.noHP) + '" placeholder="08xx" inputmode="tel" autocomplete="off"></div>' +
+          '<input type="tel" id="' + p + 'HP" value="' + escHtml(d.noHP) + '" placeholder="08xx-xxxx-xxxx" inputmode="tel" autocomplete="off"></div>' +
         (opt.ket ? '<div class="field"><label for="' + p + 'Ket">Keterangan (opsional)</label>' +
-          '<input type="text" id="' + p + 'Ket" value="' + escHtml(d.keterangan || '') + '" placeholder="Catatan" autocomplete="off"></div>' : '') +
+          '<input type="text" id="' + p + 'Ket" value="' + escHtml(d.keterangan || '') + '" placeholder="Tambahkan catatan" autocomplete="off"></div>' : '') +
       '</div></div>';
     },
     bindPemesan: function(p, d, opt){
@@ -7040,7 +7040,7 @@ Pages.belanja = {title: 'Belanja — H. Mawih Sayur', run: function(){
       var self = this;
       var aktif = this.list.filter(function(p){ return p.Status !== 'selesai'; });
       var selesai = this.list.filter(function(p){ return p.Status === 'selesai'; });
-      var html = FormKit.searchBar('plSearch', 'Cari pesanan...', '+ Pesanan', true);
+      var html = FormKit.searchBar('plSearch', 'Cari pesanan', '+ Pesanan', true);
 
       if(this.piutangList.length){
         var totalSisa = this.piutangList.reduce(function(s,h){ return s + (Number(h.Sisa)||0); }, 0);
@@ -7177,7 +7177,7 @@ Pages.belanja = {title: 'Belanja — H. Mawih Sayur', run: function(){
       }
       html += '</div>';
 
-      html += FormKit.searchBar('pdSearch', 'Cari barang untuk ditambah...', '+ Tambah');
+      html += FormKit.searchBar('pdSearch', 'Cari barang untuk ditambahkan', '+ Tambah');
 
       html += '<div style="height:8px;"></div>';
       var pembayaran = p.Pembayaran || [];
@@ -7281,7 +7281,7 @@ Pages.belanja = {title: 'Belanja — H. Mawih Sayur', run: function(){
       var total = d.items.reduce(function(s, it){ return s + FormKit.sub(it); }, 0);
       return FormKit.formHead('btnBaruBack', 'Pesanan Baru', 'Isi data pemesan dan barang') +
         FormKit.pemesanCard(d, 'pb', {namaWajib: true, ket: true}) +
-        FormKit.searchBar('pbSearch', 'Cari barang...', '+ Tambah') +
+        FormKit.searchBar('pbSearch', 'Cari barang', '+ Tambah') +
         '<div class="item-list fk-items" id="pbItems">' + FormKit.itemsHtml(d.items, this.openIdx, true) + '</div>' +
         '<div class="fk-page">' +
           '<div class="fm-card"><div class="nf-sum-row"><span style="color:var(--text-2);">Total</span>' +
@@ -7623,7 +7623,7 @@ Pages.belanja = {title: 'Belanja — H. Mawih Sayur', run: function(){
           '<div class="field"><label>Tanggal</label>' +
             '<input type="date" id="pm_tgl" value="' + todayYmd() + '"></div>' +
           '<div class="field"><label>Catatan</label>' +
-            '<input type="text" id="pm_ket" placeholder="opsional"></div>',
+            '<input type="text" id="pm_ket" placeholder="Tambahkan catatan"></div>',
         actions:
           '<button class="btn btn-primary" id="pm_save">Simpan</button>' +
           '<button class="btn btn-ghost" data-close>Batal</button>',
@@ -7865,7 +7865,7 @@ Pages.belanja = {title: 'Belanja — H. Mawih Sayur', run: function(){
 
     renderList(){
       var self = this;
-      var html = FormKit.searchBar('nlSearch', 'Cari nota...', '+ Nota', true);
+      var html = FormKit.searchBar('nlSearch', 'Cari nota', '+ Nota', true);
 
       html += '<div class="fk-chips">';
       [['all','Semua'],['kurang','Kurang'],['lunas','Lunas']].forEach(function(f){
@@ -7945,7 +7945,7 @@ Pages.belanja = {title: 'Belanja — H. Mawih Sayur', run: function(){
 
       var html = FormKit.formHead('btnNotaFormBack', 'Buat Nota Baru', 'Nota mandiri') +
         FormKit.pemesanCard(d, 'nf', {}) +
-        FormKit.searchBar('nfSearch', 'Cari barang...', '+ Tambah') +
+        FormKit.searchBar('nfSearch', 'Cari barang', '+ Tambah') +
         '<div class="item-list fk-items" id="nfItems">' + FormKit.itemsHtml(d.items, this.openIdx, false) + '</div>';
 
       if(d.items.length){
@@ -8719,7 +8719,7 @@ Pages.tutup = {title: 'Tutup Hari — H. Mawih Sayur', run: function(){
     }
     if(!isLocked){
       h += '<div class="add-row">' +
-        '<input type="text" class="nm" id="addBiayaKet" placeholder="mis. Gaji Ucup" autocomplete="off">' +
+        '<input type="text" class="nm" id="addBiayaKet" placeholder="Keterangan biaya" autocomplete="off">' +
         '<input type="text" class="jml" id="addBiayaJml" inputmode="none" readonly placeholder="0">' +
         '<button type="button" id="addBiayaBtn">+</button>' +
         '</div>';
