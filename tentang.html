@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tentang · Sayur App</title>
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#2F5233">
+<meta name="color-scheme" content="light dark">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+<link rel="icon" href="./icons/favicon-48.png">
+<script>
+(function(){var s=null;try{s=localStorage.getItem('sayur_dark');}catch(e){}
+var d=s==='1'||(s===null&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);
+if(d)document.documentElement.classList.add('dark');})();
+</script>
+<link rel="stylesheet" href="./halaman.css">
+</head>
+<body>
+<header class="appbar">
+  <button class="icon-btn" id="btnBack" type="button" aria-label="Kembali">
+    <svg class="ic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
+  </button>
+  <h1>Tentang</h1>
+</header>
+<main class="wrap">
+  <section class="card hero">
+    <img src="./icons/icon-192.png" alt="">
+    <h2>H. Mawih Sayur</h2>
+    <p>Sayur App: pencatatan belanja, pesanan, tutup hari, dan laporan usaha sayur.</p>
+  </section>
+  <section class="card">
+    <dl class="kv">
+      <dt>Penyimpanan</dt><dd>Google Sheets milik Anda</dd>
+      <dt>Server</dt><dd>Google Apps Script</dd>
+      <dt>Mode offline</dt><dd>Ya, kirim otomatis saat online</dd>
+      <dt>Versi server</dt><dd id="kvVer">-</dd>
+    </dl>
+  </section>
+  <p class="lead" style="text-align:center">Data usaha tersimpan di akun Google pemilik aplikasi, bukan di pihak ketiga.</p>
+
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="./halaman.js"></script>
+<script src="./storage.js"></script>
+<script>
+(function(){var S=window.SayurStorage;if(!S||!S.ping)return;
+S.ping().then(function(r){document.getElementById('kvVer').textContent=(r&&r.versi)||'-';},function(){});})();
+</script>
+</body>
+</html>

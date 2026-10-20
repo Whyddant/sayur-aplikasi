@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bantuan · Sayur App</title>
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#2F5233">
+<meta name="color-scheme" content="light dark">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+<link rel="icon" href="./icons/favicon-48.png">
+<script>
+(function(){var s=null;try{s=localStorage.getItem('sayur_dark');}catch(e){}
+var d=s==='1'||(s===null&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);
+if(d)document.documentElement.classList.add('dark');})();
+</script>
+<link rel="stylesheet" href="./halaman.css">
+</head>
+<body>
+<header class="appbar">
+  <button class="icon-btn" id="btnBack" type="button" aria-label="Kembali">
+    <svg class="ic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
+  </button>
+  <h1>Bantuan</h1>
+</header>
+<main class="wrap">
+  <p class="lead">Masalah yang sering muncul dan cara mengatasinya.</p>
+  <section class="card">
+  <details open><summary>Data tidak muncul atau terasa lama</summary><div class="isi"><ul><li>Pastikan ada internet.</li><li>Buka Pengaturan, tekan <b>Tes koneksi</b>.</li><li>Bila masih lama, tekan <b>Muat ulang dari server</b>.</li></ul></div></details>
+  <details><summary>"Token salah" atau akses ditolak</summary><div class="isi"><p>Token di HP berbeda dengan token di server. Di editor Apps Script jalankan <code>infoKoneksi</code>, salin token terbaru, lalu isi di Pengaturan. Bila token pernah diganti lewat <code>buatTokenBaru</code>, semua HP harus diperbarui.</p></div></details>
+  <details><summary>Catatan "Gagal dikirim"</summary><div class="isi"><p>Server menolak catatan itu, biasanya karena isinya tidak valid. Buka Pengaturan, bagian Pengiriman data. Perbaiki lewat aplikasi, atau tekan <b>Buang yang gagal</b> bila tidak diperlukan.</p></div></details>
+  <details><summary>Aplikasi tidak memuat versi terbaru</summary><div class="isi"><p>Buka Pengaturan, tekan <b>Segarkan aplikasi</b> (perlu internet). Bila Anda mengubah file aplikasi, naikkan angka VERSI di <code>sw.js</code> sebelum mengunggah.</p></div></details>
+  <details><summary>Pasang di layar utama</summary><div class="isi"><p>Android (Chrome): menu titik tiga, <b>Pasang aplikasi</b>. iPhone (Safari): tombol Bagikan, <b>Tambah ke Layar Utama</b>.</p></div></details>
+  <details><summary>Pindah ke HP baru</summary><div class="isi"><p>Di HP lama buka Pengaturan, <b>Salin kode sambung</b>. Di HP baru tempel kode itu lalu tekan <b>Pakai</b>.</p></div></details>
+  </section>
+  <section class="card">
+    <h2>Info untuk teknisi</h2>
+    <p class="sub">Salin lalu kirim bila meminta bantuan. Tidak berisi token.</p>
+    <div class="btn-row"><button class="btn" id="btnInfo" type="button">Salin info perangkat</button></div>
+  </section>
+
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="./halaman.js"></script>
+<script src="./storage.js"></script>
+<script>
+document.getElementById('btnInfo').addEventListener('click',function(){
+  var S=window.SayurStorage,c=S&&S.config?S.config.get():{},q=S&&S.queue?S.queue:null;
+  var t=['Sayur App','Alamat server: '+(c.url?'terisi':'kosong'),'Token: '+(c.token?'terisi':'kosong'),
+   'Antrean: '+(q?q.list().length:'?')+' (gagal '+(q?q.failedCount():'?')+')','Online: '+(navigator.onLine?'ya':'tidak'),
+   'Browser: '+navigator.userAgent].join('\n');
+  Hal.salin(t).then(function(ok){Hal.toast(ok?'Info disalin':'Tidak bisa menyalin');});
+});
+</script>
+</body>
+</html>

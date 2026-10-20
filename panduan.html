@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Panduan · Sayur App</title>
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#2F5233">
+<meta name="color-scheme" content="light dark">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+<link rel="icon" href="./icons/favicon-48.png">
+<script>
+(function(){var s=null;try{s=localStorage.getItem('sayur_dark');}catch(e){}
+var d=s==='1'||(s===null&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);
+if(d)document.documentElement.classList.add('dark');})();
+</script>
+<link rel="stylesheet" href="./halaman.css">
+</head>
+<body>
+<header class="appbar">
+  <button class="icon-btn" id="btnBack" type="button" aria-label="Kembali">
+    <svg class="ic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
+  </button>
+  <h1>Panduan</h1>
+</header>
+<main class="wrap">
+  <p class="lead">Urutan kerja harian dan cara memakai tiap menu.</p>
+  <section class="card">
+  <details open><summary>Alur satu hari</summary><div class="isi"><ol class="langkah"><li><b>Beranda.</b> Lihat ringkasan kemarin dan hari yang belum dicatat.</li><li><b>Belanja.</b> Catat barang yang dibeli di pasar: nama, jumlah, harga modal.</li><li><b>Pesanan.</b> Catat pesanan pelanggan dan tandai bila sudah diserahkan atau dibayar.</li><li><b>Tutup.</b> Malam hari, isi omzet Cash dan QRIS serta biaya, lalu simpan.</li><li><b>Laporan.</b> Periksa Saldo, Hutang, dan Riwayat.</li></ol></div></details>
+  <details><summary>Belanja</summary><div class="isi"><ul><li>Ketik nama barang, jumlah, dan harga modal. Jumlah boleh ditulis seperti <code>2,5</code> atau <code>2 kg</code>.</li><li>Harga jual diperkirakan dari modal dan persen susut di Pengaturan.</li><li>Belanja yang dibayar utang dicatat sebagai hutang ke pemasok.</li></ul></div></details>
+  <details><summary>Tutup hari</summary><div class="isi"><ul><li>Isi omzet Cash dan QRIS, lalu biaya: ops pasar, bensin, lain-lain.</li><li>Laba bersih dihitung otomatis: omzet dikurangi modal belanja dan semua biaya.</li><li>Hari libur: tandai libur agar tidak dianggap bolong.</li></ul></div></details>
+  <details><summary>Saldo</summary><div class="isi"><ul><li>Saldo dihitung dari Setor dikurangi Tarik, terpisah untuk Cash dan QRIS.</li><li>Gunakan Setor saat menambah uang ke kas, Tarik saat mengambil.</li><li>Pembayaran hutang otomatis ikut tercatat sebagai mutasi.</li></ul></div></details>
+  <details><summary>Hutang dan piutang</summary><div class="isi"><ul><li>Buka satu hutang, isi jumlah dan metode, lalu Bayar.</li><li>Bila hutang sudah lunas, tombol bayar tidak muncul lagi.</li></ul></div></details>
+  <details><summary>Bekerja tanpa internet</summary><div class="isi"><p>Catatan tetap bisa dibuat saat offline. Tanda <b>Belum terkirim</b> muncul pada catatan yang masih di HP. Saat internet kembali, aplikasi mengirimnya otomatis. Pemakaian berulang tidak membuat data ganda.</p></div></details>
+  </section>
+
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="./halaman.js"></script>
+</body>
+</html>

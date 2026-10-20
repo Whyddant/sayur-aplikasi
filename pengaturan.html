@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pengaturan · Sayur App</title>
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#2F5233">
+<meta name="color-scheme" content="light dark">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+<link rel="icon" href="./icons/favicon-48.png">
+<script>
+(function(){var s=null;try{s=localStorage.getItem('sayur_dark');}catch(e){}
+var d=s==='1'||(s===null&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);
+if(d)document.documentElement.classList.add('dark');})();
+</script>
+<link rel="stylesheet" href="./halaman.css">
+</head>
+<body>
+<header class="appbar">
+  <button class="icon-btn" id="btnBack" type="button" aria-label="Kembali">
+    <svg class="ic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
+  </button>
+  <h1>Pengaturan</h1>
+</header>
+
+<main class="wrap">
+
+  <section class="card" aria-labelledby="hKoneksi">
+    <h2 id="hKoneksi">Koneksi server</h2>
+    <p class="sub">Alamat Web App dan token dari Google Apps Script. Tersimpan di HP ini saja.</p>
+    <div class="field">
+      <label for="inUrl">Alamat Web App (URL)</label>
+      <input id="inUrl" type="url" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false"
+             placeholder="https://script.google.com/macros/s/…/exec">
+    </div>
+    <div class="field">
+      <label for="inToken">Token</label>
+      <div class="input-row">
+        <input id="inToken" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="32 huruf/angka">
+        <button class="btn" id="btnLihat" type="button" aria-pressed="false">Lihat</button>
+      </div>
+      <p class="hint">Token dibuat otomatis oleh skrip. Lihat di editor Apps Script: jalankan <code>infoKoneksi</code>.</p>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btnSimpanKoneksi" type="button">Simpan</button>
+      <button class="btn" id="btnTes" type="button">Tes koneksi</button>
+    </div>
+    <div class="stat" id="statKoneksi" hidden role="status"></div>
+  </section>
+
+  <section class="card" aria-labelledby="hSambung">
+    <h2 id="hSambung">Sambungkan HP lain</h2>
+    <p class="sub">Salin kode dari HP yang sudah tersambung, tempel di HP baru. Tidak perlu mengetik URL dan token satu per satu.</p>
+    <div class="btn-row">
+      <button class="btn" id="btnSalinKode" type="button">Salin kode sambung</button>
+    </div>
+    <div class="field" style="margin-top:14px">
+      <label for="inKode">Tempel kode sambung</label>
+      <div class="input-row">
+        <input id="inKode" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Kode dari HP lain">
+        <button class="btn" id="btnPakaiKode" type="button">Pakai</button>
+      </div>
+      <p class="hint">Kode berisi token. Kirim hanya ke orang yang boleh memakai aplikasi ini.</p>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="hSinkron">
+    <h2 id="hSinkron">Pengiriman data</h2>
+    <p class="sub">Data yang dicatat saat offline disimpan di HP lalu dikirim otomatis saat online.</p>
+    <dl class="kv">
+      <dt>Menunggu dikirim</dt><dd id="kvMenunggu">0</dd>
+      <dt>Gagal dikirim</dt><dd id="kvGagal">0</dd>
+      <dt>Koneksi</dt><dd id="kvOnline">-</dd>
+    </dl>
+    <div class="btn-row" style="margin-top:14px">
+      <button class="btn btn-primary" id="btnKirim" type="button">Kirim sekarang</button>
+      <button class="btn btn-danger" id="btnBuang" type="button" hidden>Buang yang gagal</button>
+    </div>
+    <div class="stat" id="statKirim" hidden role="status"></div>
+  </section>
+
+  <section class="card" aria-labelledby="hLapak">
+    <h2 id="hLapak">Pengaturan lapak</h2>
+    <p class="sub">Disimpan di server, berlaku untuk semua pengguna.</p>
+    <div class="field">
+      <label for="inNama">Nama lapak</label>
+      <input id="inNama" type="text" autocomplete="off" maxlength="60">
+    </div>
+    <div class="field">
+      <label for="inBatas">Target laba minimal per hari (Rp)</label>
+      <input id="inBatas" type="tel" inputmode="numeric" autocomplete="off">
+      <p class="hint">Dipakai di Beranda untuk menilai "target tercapai".</p>
+    </div>
+    <div class="field">
+      <label for="inSusut">Perkiraan susut barang (%)</label>
+      <input id="inSusut" type="tel" inputmode="decimal" autocomplete="off">
+      <p class="hint">Dipakai untuk memperkirakan harga jual. Contoh: 30.</p>
+    </div>
+    <button class="btn btn-primary btn-block" id="btnSimpanLapak" type="button">Simpan pengaturan lapak</button>
+    <div class="stat" id="statLapak" hidden role="status"></div>
+  </section>
+
+  <section class="card" aria-labelledby="hTampil">
+    <h2 id="hTampil">Tampilan</h2>
+    <div class="seg" role="group" aria-label="Mode warna">
+      <button type="button" data-mode="sistem">Ikuti HP</button>
+      <button type="button" data-mode="terang">Terang</button>
+      <button type="button" data-mode="gelap">Gelap</button>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="hData">
+    <h2 id="hData">Data di HP ini</h2>
+    <p class="sub">Dipakai bila tampilan terasa tidak sesuai dengan data di server. Catatan yang belum terkirim tidak ikut terhapus.</p>
+    <div class="btn-row">
+      <button class="btn" id="btnCache" type="button">Muat ulang dari server</button>
+      <button class="btn btn-danger" id="btnReset" type="button">Segarkan aplikasi</button>
+    </div>
+    <p class="hint" style="margin-top:10px;font-size:12px;color:var(--text-3)">"Segarkan aplikasi" menghapus simpanan offline aplikasi dan memuat versi terbaru. Perlu internet.</p>
+  </section>
+
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="./storage.js"></script>
+<script src="./halaman.js"></script>
+<script>
+(function(){
+  var $ = Hal.$, S = window.SayurStorage;
+
+  function tampil(el, jenis, teks){
+    el.hidden = false; el.className = 'stat' + (jenis ? ' ' + jenis : ''); el.textContent = teks;
+  }
+
+  /* ---------- Koneksi ---------- */
+  function isiKoneksi(){
+    var c = S.config.get();
+    $('inUrl').value = c.url; $('inToken').value = c.token;
+  }
+  function valid(url, token){
+    if(!/^https:\/\/script\.google\.com\/.+\/exec$/.test(url))
+      return 'Alamat harus berawalan https://script.google.com/ dan berakhiran /exec';
+    if(!token) return 'Token belum diisi';
+    return '';
+  }
+  $('btnLihat').addEventListener('click', function(){
+    var t = $('inToken'), buka = t.type === 'password';
+    t.type = buka ? 'text' : 'password';
+    this.textContent = buka ? 'Sembunyi' : 'Lihat';
+    this.setAttribute('aria-pressed', buka ? 'true' : 'false');
+  });
+  $('btnSimpanKoneksi').addEventListener('click', function(){
+    var url = $('inUrl').value.trim(), token = $('inToken').value.trim();
+    var salah = valid(url, token);
+    if(salah){ tampil($('statKoneksi'), 'bad', salah); return; }
+    S.config.set({url: url, token: token});
+    tampil($('statKoneksi'), 'ok', 'Tersimpan. Menguji koneksi…');
+    tes();
+  });
+  function tes(){
+    var btn = $('btnTes'); btn.disabled = true;
+    tampil($('statKoneksi'), '', 'Menghubungi server…');
+    S.ping().then(function(r){
+      tampil($('statKoneksi'), 'ok', 'Tersambung. Versi server ' + (r && r.versi || '?') + ', zona waktu ' + (r && r.zona || '?') + '.');
+      muatLapak();
+    }, function(e){
+      var jenis = e && e.kind === 'auth' ? 'bad' : 'warn';
+      tampil($('statKoneksi'), jenis, (e && e.message) || 'Gagal menghubungi server');
+    }).then(function(){ btn.disabled = false; segarkanStatus(); });
+  }
+  $('btnTes').addEventListener('click', function(){
+    var url = $('inUrl').value.trim(), token = $('inToken').value.trim();
+    var salah = valid(url, token);
+    if(salah){ tampil($('statKoneksi'), 'bad', salah); return; }
+    S.config.set({url: url, token: token});
+    tes();
+  });
+
+  /* ---------- Kode sambung ---------- */
+  function enc(o){ return btoa(unescape(encodeURIComponent(JSON.stringify(o)))); }
+  function dec(s){ return JSON.parse(decodeURIComponent(escape(atob(s)))); }
+  $('btnSalinKode').addEventListener('click', function(){
+    var c = S.config.get();
+    if(!c.url || !c.token){ Hal.toast('Isi alamat dan token dulu'); return; }
+    Hal.salin('SAYUR1:' + enc({u: c.url, t: c.token})).then(function(ok){
+      Hal.toast(ok ? 'Kode disalin' : 'Tidak bisa menyalin otomatis');
+    });
+  });
+  $('btnPakaiKode').addEventListener('click', function(){
+    var raw = $('inKode').value.trim();
+    try{
+      if(raw.indexOf('SAYUR1:') !== 0) throw new Error('format');
+      var o = dec(raw.slice(7));
+      var salah = valid(String(o.u || ''), String(o.t || ''));
+      if(salah) throw new Error(salah);
+      S.config.set({url: o.u, token: o.t});
+      isiKoneksi(); $('inKode').value = '';
+      Hal.toast('Tersambung. Menguji…'); tes();
+    }catch(e){
+      tampil($('statKoneksi'), 'bad', 'Kode tidak valid. Salin ulang dari HP yang sudah tersambung.');
+    }
+  });
+
+  /* ---------- Pengiriman data ---------- */
+  function segarkanStatus(){
+    var l = S.queue.list(), gagal = S.queue.failedCount();
+    $('kvMenunggu').textContent = String(Math.max(0, l.length - gagal));
+    $('kvGagal').textContent = String(gagal);
+    $('kvOnline').textContent = navigator.onLine ? 'Online' : 'Offline';
+    $('btnBuang').hidden = gagal === 0;
+    $('btnKirim').disabled = l.length === 0;
+  }
+  $('btnKirim').addEventListener('click', function(){
+    var btn = this; btn.disabled = true;
+    tampil($('statKirim'), '', 'Mengirim…');
+    S.queue.resetFailed();
+    S.processQueue().then(function(r){
+      if(r && r.skipped){
+        tampil($('statKirim'), 'warn', r.reason === 'config' ? 'Alamat server/token belum diisi.' :
+          (r.reason === 'offline' ? 'Sedang offline.' : 'Sedang dikirim di tab lain.'));
+      } else {
+        var sisa = S.queue.list().length, gagal = S.queue.failedCount();
+        if(!sisa) tampil($('statKirim'), 'ok', 'Semua data sudah terkirim.');
+        else if(gagal) tampil($('statKirim'), 'bad', gagal + ' data ditolak server. Lihat menu Bantuan untuk langkah selanjutnya.');
+        else tampil($('statKirim'), 'warn', sisa + ' data belum terkirim. Coba lagi nanti.');
+      }
+    }, function(){ tampil($('statKirim'), 'bad', 'Gagal mengirim. Coba lagi.'); })
+    .then(function(){ segarkanStatus(); });
+  });
+  $('btnBuang').addEventListener('click', function(){
+    if(!confirm('Buang data yang gagal terkirim? Data ini tidak akan masuk ke server.')) return;
+    S.discardFailed(); segarkanStatus(); Hal.toast('Dibuang');
+  });
+  ['sayur:queue','sayur:sync','online','offline'].forEach(function(e){ window.addEventListener(e, segarkanStatus); });
+
+  /* ---------- Pengaturan lapak ---------- */
+  function fmtRp(n){ n = Number(n) || 0; return n ? n.toLocaleString('id-ID') : ''; }
+  $('inBatas').addEventListener('input', function(){
+    var d = this.value.replace(/\D/g, ''); this.value = d ? Number(d).toLocaleString('id-ID') : '';
+  });
+  function muatLapak(){
+    S.pengaturan.get().then(function(p){
+      p = p || {};
+      $('inNama').value = p.NamaLapak || '';
+      $('inBatas').value = fmtRp(p.BatasMinimalLaba);
+      var s = Number(p.SusutRate);
+      $('inSusut').value = s > 0 ? String(Math.round(s * 1000) / 10).replace('.', ',') : '';
+    });
+  }
+  $('btnSimpanLapak').addEventListener('click', function(){
+    var nama = $('inNama').value.trim();
+    var batas = parseInt($('inBatas').value.replace(/\D/g, ''), 10) || 0;
+    var susut = parseFloat($('inSusut').value.replace(',', '.'));
+    if(!nama){ tampil($('statLapak'), 'bad', 'Nama lapak wajib diisi'); return; }
+    if(!(batas > 0)){ tampil($('statLapak'), 'bad', 'Target laba harus lebih dari 0'); return; }
+    if(!(susut >= 0 && susut <= 90)){ tampil($('statLapak'), 'bad', 'Susut harus antara 0 dan 90 persen'); return; }
+    var btn = this; btn.disabled = true;
+    S.pengaturan.set({NamaLapak: nama, BatasMinimalLaba: batas, SusutRate: Math.round(susut * 10) / 1000})
+      .then(function(r){
+        tampil($('statLapak'), r && r.queued ? 'warn' : 'ok',
+          r && r.queued ? 'Tersimpan di HP, akan dikirim ke server saat tersambung.' : 'Tersimpan di server.');
+      }, function(e){ tampil($('statLapak'), 'bad', (e && e.message) || 'Gagal menyimpan'); })
+      .then(function(){ btn.disabled = false; segarkanStatus(); });
+  });
+
+  /* ---------- Tampilan ---------- */
+  function tandaiMode(){
+    var m = Hal.modeGelap();
+    Array.prototype.forEach.call(document.querySelectorAll('.seg button'), function(b){
+      b.classList.toggle('on', b.dataset.mode === m);
+    });
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('.seg button'), function(b){
+    b.addEventListener('click', function(){ Hal.setModeGelap(b.dataset.mode); tandaiMode(); });
+  });
+
+  /* ---------- Data di HP ---------- */
+  var KUNCI_SALINAN = ['sayur_dashboard_cache', 'sayur_pengaturan_v1',
+    'mawih_mutasi_srv_v2', 'mawih_hutang_srv_v2', 'mawih_riwayat_srv_v1'];
+  $('btnCache').addEventListener('click', function(){
+    var hapus = [];
+    try{
+      for(var i = 0; i < localStorage.length; i++){
+        var k = localStorage.key(i);
+        if(k && (k.indexOf('sayur_c1:') === 0 || KUNCI_SALINAN.indexOf(k) !== -1)) hapus.push(k);
+      }
+      hapus.forEach(function(k){ localStorage.removeItem(k); });
+    }catch(e){}
+    Hal.toast('Salinan dihapus. Data dimuat ulang saat halaman dibuka.');
+  });
+  $('btnReset').addEventListener('click', function(){
+    if(!confirm('Segarkan aplikasi? Catatan yang belum terkirim tetap aman.')) return;
+    var tugas = [];
+    if('serviceWorker' in navigator){
+      tugas.push(navigator.serviceWorker.getRegistrations().then(function(rs){
+        return Promise.all(rs.map(function(r){ return r.unregister(); }));
+      }));
+    }
+    if(window.caches){
+      tugas.push(caches.keys().then(function(ks){ return Promise.all(ks.map(function(k){ return caches.delete(k); })); }));
+    }
+    Promise.all(tugas).catch(function(){}).then(function(){ location.href = './'; });
+  });
+
+  /* ---------- mulai ---------- */
+  isiKoneksi(); tandaiMode(); segarkanStatus(); muatLapak();
+  if(!S.config.isReady()){
+    tampil($('statKoneksi'), 'warn', 'Belum tersambung ke server. Isi alamat Web App dan token, lalu tekan Simpan.');
+  }
+})();
+</script>
+</body>
+</html>
