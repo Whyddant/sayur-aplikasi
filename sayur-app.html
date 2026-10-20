@@ -9830,6 +9830,7 @@ Pages.laporan = {title: 'Laporan — H. Mawih Sayur', run: function(){
      ========================================================== */
   function renderSaldo(){
     var el = $('panel-saldo');
+    if(!el) return;   // halaman Laporan sudah ditinggalkan
     var s = hitungSaldo();
     var html = pitaSumber('mutasi');
 
@@ -9996,6 +9997,7 @@ Pages.laporan = {title: 'Laporan — H. Mawih Sayur', run: function(){
      ========================================================== */
   function renderHutang(){
     var el = $('panel-hutang');
+    if(!el) return;
     var piutang = App.hutang.filter(function(h){ return h.Tipe === 'PiutangSaya'; });
     var hutang = App.hutang.filter(function(h){ return h.Tipe === 'HutangSaya'; });
     var totalPiutang = piutang.filter(function(h){ return h.Status !== 'Lunas'; })
@@ -10106,6 +10108,7 @@ Pages.laporan = {title: 'Laporan — H. Mawih Sayur', run: function(){
 
   function renderRiwayat(){
     var el = $('panel-riwayat');
+    if(!el) return;
     var list = App.riwayat.slice().sort(function(a, b){
       return String(b.Tanggal).localeCompare(String(a.Tanggal));
     });
@@ -10799,12 +10802,21 @@ Pages.laporan = {title: 'Laporan — H. Mawih Sayur', run: function(){
     setTab(Router.tabParam());
     segarkan();
 
-    window.addEventListener('online', function(){ updateStatus(); segarkan(); });
+    /* Listener global: hanya aktif selama halaman Laporan tampil, lalu melepas diri */
+    function aktif(){ return !!$('panel-saldo'); }
+    function lepas(){
+      window.removeEventListener('online', onOnline);
+      window.removeEventListener('offline', updateStatus);
+      window.removeEventListener('sayur:sync', onSync);
+      window.removeEventListener('pageshow', onShow);
+    }
+    function onOnline(){ if(!aktif()) return lepas(); updateStatus(); segarkan(); }
+    function onSync(){ if(!aktif()) return lepas(); segarkan(); }   // antrean selesai terkirim
+    function onShow(e){ if(!aktif()) return lepas(); if(e.persisted) segarkan(); }
+    window.addEventListener('online', onOnline);
     window.addEventListener('offline', updateStatus);
-    /* antrean SyncUI selesai mengirim -> data server sudah berubah */
-    window.addEventListener('sayur:sync', function(){ segarkan(); });
-    /* kembali dari bfcache */
-    window.addEventListener('pageshow', function(e){ if(e.persisted) segarkan(); });
+    window.addEventListener('sayur:sync', onSync);
+    window.addEventListener('pageshow', onShow);
   }
 
   if(document.readyState === 'loading'){
