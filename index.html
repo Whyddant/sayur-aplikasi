@@ -137,32 +137,26 @@ input{font-family:inherit}
 .hero-empty{padding:20px}
 .hero-empty h2{font-size:var(--fs-lg);font-weight:700}
 .hero-empty p{margin-top:6px;font-size:var(--fs-sm);color:var(--text-2)}
-.actions-carousel{position:relative;margin:0 -16px;}
-.actions-track{
-  display:flex;gap:8px;overflow-x:auto;
-  scroll-snap-type:x mandatory;scroll-padding:0 16px;
-  padding:4px 16px 12px;-webkit-overflow-scrolling:touch;
-  scrollbar-width:none;scroll-behavior:smooth;
+.shortcuts{
+  display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;
+  margin:4px 0 8px;
 }
-.actions-track::-webkit-scrollbar{display:none}
-.action{
-  flex:0 0 132px;scroll-snap-align:start;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:8px;min-height:100px;padding:14px 8px;border-radius:var(--r);
-  background:var(--surface);border:1px solid var(--line);
-  font-size:var(--fs-sm);font-weight:600;text-align:center;
-  transition:background .12s;-webkit-tap-highlight-color:transparent;
+.shortcut{
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  padding:6px 0;min-width:0;background:none;border:0;border-radius:var(--r-sm);
+  font-family:inherit;font-size:var(--fs-xs);font-weight:600;color:var(--text);
+  text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent;
 }
-.action:active{background:var(--line-soft)}
-.action .badge{
-  width:40px;height:40px;border-radius:50%;
+.shortcut .tile{
+  width:48px;height:48px;border-radius:14px;
   display:grid;place-items:center;
-  background:var(--accent-tint);color:var(--accent);flex:none;
+  background:var(--accent-tint);color:var(--accent);
+  transition:transform .12s ease,filter .12s ease;
 }
-.actions-dots{display:flex;justify-content:center;gap:6px;margin-top:2px;}
-.actions-dots .d{width:6px;height:6px;border-radius:50%;
-  background:var(--line);transition:all .2s ease;}
-.actions-dots .d.on{background:var(--accent);width:20px;border-radius:3px;}
+.shortcut .tile .ic{width:22px;height:22px}
+.shortcut:active .tile{transform:scale(.94);filter:brightness(.95)}
+.shortcut:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.shortcut>span:last-child{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .row-card{overflow:hidden}
 .row-btn{
   display:flex;align-items:center;gap:12px;width:100%;
@@ -2848,40 +2842,37 @@ body.sheet-open .toast{bottom:auto;top:calc(68px + 8px)}
 
     <div id="heroSlot"></div>
 
-    <div class="actions-carousel">
-      <div class="actions-track" id="actionsTrack" role="navigation" aria-label="Aksi cepat">
-        <button class="action" type="button" data-go="./belanja.html?tab=pesanan">
-          <span class="badge">
+    <div class="shortcuts" id="actionsTrack" role="navigation" aria-label="Pintasan">
+        <button class="shortcut" type="button" data-go="./belanja.html?tab=pesanan">
+          <span class="tile">
             <svg class="ic" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg>
           </span>
-          Pesanan
+          <span>Pesanan</span>
         </button>
-        <button class="action" type="button" data-go="./belanja.html?tab=nota">
-          <span class="badge">
+        <button class="shortcut" type="button" data-go="./belanja.html?tab=nota">
+          <span class="tile">
             <svg class="ic" viewBox="0 0 24 24"><path d="M5 4h11l3 3v13H5z"/><path d="M9 10h6M9 14h6"/></svg>
           </span>
-          Nota
+          <span>Nota</span>
         </button>
-        <button class="action" type="button" data-go="./laporan.html?tab=saldo">
-          <span class="badge">
+        <button class="shortcut" type="button" data-go="./laporan.html?tab=saldo">
+          <span class="tile">
             <svg class="ic" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg>
           </span>
-          Saldo
+          <span>Saldo</span>
         </button>
-        <button class="action" type="button" data-go="./laporan.html?tab=hutang">
-          <span class="badge">
-            <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg>
+        <button class="shortcut" type="button" data-go="./laporan.html?tab=hutang">
+          <span class="tile">
+            <svg class="ic" viewBox="0 0 24 24"><path d="M4 8h14l-4-4"/><path d="M20 16H6l4 4"/></svg>
           </span>
-          Hutang
+          <span>Hutang</span>
         </button>
-        <button class="action" type="button" data-go="./laporan.html?tab=riwayat">
-          <span class="badge">
+        <button class="shortcut" type="button" data-go="./laporan.html?tab=riwayat">
+          <span class="tile">
             <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
           </span>
-          Riwayat
+          <span>Riwayat</span>
         </button>
-      </div>
-      <div class="actions-dots" id="actionsDots" aria-hidden="true"></div>
     </div>
 
     <div id="bottomSlot"></div>
@@ -4593,59 +4584,6 @@ Pages.beranda = {title: 'Beranda — H. Mawih Sayur', run: function(){
     if(all.length) tutupSheet(all[all.length - 1]);
   });
 
-  function initActionsCarousel(){
-    var track = $('actionsTrack');
-    var dotsEl = $('actionsDots');
-    if(!track || !dotsEl) return;
-
-    function update(){
-      var totalScroll = track.scrollWidth - track.clientWidth;
-      if(totalScroll <= 4){
-        dotsEl.innerHTML = '';
-        return;
-      }
-      var pages = Math.ceil(track.scrollWidth / track.clientWidth);
-      if(pages < 2) pages = 2;
-
-      if(dotsEl.children.length !== pages){
-        dotsEl.innerHTML = '';
-        for(var i = 0; i < pages; i++){
-          var d = document.createElement('span');
-          d.className = 'd';
-          dotsEl.appendChild(d);
-        }
-      }
-
-      var progress = totalScroll > 0 ? track.scrollLeft / totalScroll : 0;
-      var active = Math.round(progress * (pages - 1));
-
-      Array.prototype.forEach.call(dotsEl.children, function(d, i){
-        d.classList.toggle('on', i === active);
-      });
-    }
-
-    var rafId = null;
-    track.addEventListener('scroll', function(){
-      if(rafId) cancelAnimationFrame(rafId);
-      rafId = requestAnimationFrame(update);
-    }, {passive: true});
-
-    window.addEventListener('resize', update);
-
-    dotsEl.addEventListener('click', function(e){
-      var d = e.target.closest('.d');
-      if(!d) return;
-      var idx = Array.prototype.indexOf.call(dotsEl.children, d);
-      var totalScroll = track.scrollWidth - track.clientWidth;
-      var pages = dotsEl.children.length;
-      var target = pages > 1 ? (idx / (pages - 1)) * totalScroll : 0;
-      track.scrollTo({left: target, behavior: 'smooth'});
-    });
-
-    update();
-    setTimeout(update, 300);
-  }
-
   async function loadDashboard(){
     var cached = readJSON(STORE_DASHBOARD_CACHE);
     if(cached){
@@ -4953,7 +4891,7 @@ Pages.beranda = {title: 'Beranda — H. Mawih Sayur', run: function(){
   }
 
   function attachHandlers(){
-    document.querySelectorAll('.action[data-go]').forEach(function(b){
+    document.querySelectorAll('.shortcut[data-go]').forEach(function(b){
       b.addEventListener('click', function(){
         Router.goUrl(b.dataset.go);
       });
@@ -5076,7 +5014,6 @@ Pages.beranda = {title: 'Beranda — H. Mawih Sayur', run: function(){
     if(!DEMO_MODE) Libur.syncFromServer().catch(function(){});
 
     loadDashboard();
-    initActionsCarousel();
 
     window.addEventListener('online', updateStatus);
     window.addEventListener('offline', updateStatus);
