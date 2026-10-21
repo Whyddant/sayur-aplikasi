@@ -137,6 +137,14 @@ input{font-family:inherit}
 .hero-empty{padding:20px}
 .hero-empty h2{font-size:var(--fs-lg);font-weight:700}
 .hero-empty p{margin-top:6px;font-size:var(--fs-sm);color:var(--text-2)}
+.empty-cta{
+  display:block;width:100%;min-height:48px;margin-top:16px;padding:0 16px;
+  border:0;border-radius:var(--r-sm);background:var(--accent);color:var(--bg);
+  font-family:inherit;font-size:var(--fs-md);font-weight:600;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.empty-cta:active{filter:brightness(.92)}
+.empty-cta:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .shortcuts{
   display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;
   margin:4px 0 8px;
@@ -2865,7 +2873,7 @@ body.sheet-open .toast{bottom:auto;top:calc(68px + 8px)}
           <span class="tile">
             <svg class="ic" viewBox="0 0 24 24"><path d="M4 8h14l-4-4"/><path d="M20 16H6l4 4"/></svg>
           </span>
-          <span>Hutang</span>
+          <span>Bon</span>
         </button>
         <button class="shortcut" type="button" data-go="./laporan.html?tab=riwayat">
           <span class="tile">
@@ -4615,7 +4623,8 @@ Pages.beranda = {title: 'Beranda — H. Mawih Sayur', run: function(){
       else if(!cached){
         $('heroSlot').innerHTML =
           '<div class="card hero-empty"><h2>Dashboard belum bisa dimuat</h2>' +
-          '<p>Periksa koneksi, lalu buka ulang halaman ini.</p></div>';
+          '<p>Periksa koneksi internet Anda, lalu coba lagi.</p>' +
+          '<button class="empty-cta" type="button" data-retry="dashboard">Coba lagi</button></div>';
       }
     }
   }
@@ -4635,7 +4644,8 @@ Pages.beranda = {title: 'Beranda — H. Mawih Sayur', run: function(){
 
     if(!d || !d.lap){
       top.innerHTML = '<div class="card hero-empty"><h2>Belum ada data</h2>' +
-        '<p>Data akan muncul setelah Anda mencatat belanja atau menutup hari.</p></div>';
+        '<p>Laba, saldo, dan grafik akan tampil di sini setelah Anda mencatat belanja dan menutup hari.</p>' +
+        '<button class="empty-cta" type="button" data-go="./belanja.html">Catat belanja pertama</button></div>';
       bottom.innerHTML = '';
       return;
     }
@@ -5012,6 +5022,13 @@ Pages.beranda = {title: 'Beranda — H. Mawih Sayur', run: function(){
     updateStatus();
 
     if(!DEMO_MODE) Libur.syncFromServer().catch(function(){});
+
+    $('heroSlot').addEventListener('click', function(e){
+      var t = e.target.closest ? e.target.closest('button') : null;
+      if(!t) return;
+      if(t.dataset.go){ Router.goUrl(t.dataset.go); }
+      else if(t.dataset.retry === 'dashboard'){ loadDashboard(); }
+    });
 
     loadDashboard();
 
