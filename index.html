@@ -8493,54 +8493,67 @@ Pages.tutup = {title: 'Tutup Hari — H. Mawih Sayur', run: function(){
     }catch(e){ return null; }
   }
 
-  function loadLocal(){
-    state.savedCosts = false;
-    var final = readJSON(STORE_FINAL + state.tanggal);
-    if(final){
-      normalize(final);
-      state.mode = 'final';
-      refreshFromBelanja();
-      return;
-    }
-    var draft = readJSON(STORE_DRAFT + state.tanggal);
-    if(draft){
-      normalize(draft);
-      state.mode = 'draft';
-      refreshFromBelanja();
-      return;
-    }
-    state.mode = 'baru';
-    state.omzetCash = 0;
-    state.omzetQris = 0;
-    state.pagi = { kk: 0, iuran: 0, konsumsi: 0 };
+  async function loadLocal(){
+  state.savedCosts = false;
+  var final = readJSON(STORE_FINAL + state.tanggal);
+  if(final){
+    normalize(final);
+    state.mode = 'final';
     refreshFromBelanja();
+    return;
+  }
+  var draft = readJSON(STORE_DRAFT + state.tanggal);
+  if(draft){
+    normalize(draft);
+    state.mode = 'draft';
+    refreshFromBelanja();
+    return;
   }
 
-  function normalize(s){
-    if(Number(s._v) >= 2){
-      state.savedCosts = true;
-      state.modalBelanja = Number(s.modalBelanja) || 0;
-      state.opsPasar = Number(s.opsPasar) || 0;
-      state.bensin = Number(s.bensin) || 0;
-      state.lainBelanja = Number(s.lainBelanja) || 0;
-    }
-    state.omzetCash = Number(s.omzetCash) || 0;
-    state.omzetQris = Number(s.omzetQris) || 0;
-    var p = s.pagi || {};
-    state.pagi.kk = Number(p.kk != null ? p.kk : p.kantongKaret) || 0;
-    state.pagi.iuran = Number(p.iuran) || 0;
-    if(Array.isArray(p.lain) && p.lain.length){
-      state.pagi.konsumsi = Number(p.lain[0].jumlah) || 0;
-    } else {
-      state.pagi.konsumsi = Number(p.konsumsi) || 0;
-    }
-    state.bon = Array.isArray(s.bon) ? s.bon.map(function(b){
-      return { id: b.id || ('bon-' + Date.now()), nama: String(b.nama || ''), jumlah: Number(b.jumlah) || 0 };
-    }) : [];
-    state.biayaUsaha = Array.isArray(s.biayaUsaha) ? s.biayaUsaha.map(function(x){
-      return { id: x.id || ('bu-' + Date.now()), ket: String(x.ket || ''), jumlah: Number(x.jumlah) || 0 };
-    }) : [];
+  /* Tidak ada catatan di HP ini: coba ambil dari server (mis. hari lama, device baru) */
+  var dariServer = await ambilDariServer(state.tanggal);
+  if(dariServer){
+    normalizeFromServer(dariServer);
+    state.mode = 'final';
+    state.savedCosts = true;
+    refreshFromBelanja();
+    return;
   }
+
+  state.mode = 'baru';
+  state.omzetCash = 0;
+  state.omzetQris = 0;
+  state.pagi = { kk: 0, iuran: 0, konsumsi: 0 };
+  refreshFromBelanja();
+}
+
+async function ambilDariServer(tgl){
+  try{
+    var r = await SayurStorage.get('getHariTutup', { tanggal: tgl });
+    return (r && r.ada) ? r : null;
+  }catch(e){ return null; }
+}
+
+function normalizeFromServer(s){
+  state.omzetCash = Number(s.omzetCash) || 0;
+  state.omzetQris = Number(s.omzetQris) || 0;
+  state.pagi = {
+    kk: Number(s.pagiKk) || 0,
+    iuran: Number(s.pagiIuran) || 0,
+    konsumsi: Number(s.pagiKonsumsi) || 0
+  };
+  state.bon = Array.isArray(s.bon) ? s.bon.map(function(b){
+    return { id: b.id, nama: String(b.nama || ''), jumlah: Number(b.jumlah) || 0 };
+  }) : [];
+  state.biayaUsaha = Array.isArray(s.biayaUsaha) ? s.biayaUsaha.map(function(x){
+    return { id: x.id, ket: String(x.ket || ''), jumlah: Number(x.jumlah) || 0 };
+  }) : [];
+  /* Biaya belanja (modal/ops/bensin/lain) tetap diambil dari tab Belanja via refreshFromBelanja(),
+     sesuai perilaku yang sudah ada — bukan dari getHariTutup. */
+  state.opsPasar = Number(s.opsPasar) || 0;
+  state.bensin = Number(s.bensin) || 0;
+  state.lainBelanja = Number(s.lainBelanja) || 0;
+}
 
   function serialize(){
     return {
@@ -8803,18 +8816,17 @@ Pages.tutup = {title: 'Tutup Hari — H. Mawih Sayur', run: function(){
   function attachHandlers(){
     var inpTanggal = $('inpTanggal');
     if(inpTanggal){
-      inpTanggal.addEventListener('change', function(){
-        if(!inpTanggal.value) return;
-        if(inpTanggal.value > todayYmd()){
-          toast('Tidak bisa isi tanggal masa depan');
-          inpTanggal.value = state.tanggal;
-          return;
-        }
-        state.tanggal = inpTanggal.value;
-        resetStateForNewDate();
-        loadLocal();
-        render();
-      });
+    inpTanggal.addEventListener('change', function(){
+      if(!inpTanggal.value) return;
+      if(inpTanggal.value > todayYmd()){
+        toast('Tidak bisa isi tanggal masa depan');
+        inpTanggal.value = state.tanggal;
+        return;
+      }
+      state.tanggal = inpTanggal.value;
+      resetStateForNewDate();
+      loadLocal().then(render);   // ← ubah dari "loadLocal(); render();" jadi ini
+    });
     }
     var btnBelanja = $('btnInputBelanja');
     if(btnBelanja){
@@ -9267,7 +9279,7 @@ Pages.tutup = {title: 'Tutup Hari — H. Mawih Sayur', run: function(){
 
     applyDarkMode(document.documentElement.classList.contains('dark'), false);
     initNavbar();
-    loadLocal();
+    await loadLocal();
     render();
   }
 
