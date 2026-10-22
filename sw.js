@@ -7,7 +7,7 @@
  *
  *  Setiap kali Anda mengubah file aplikasi, naikkan angka VERSI di bawah.
  */
-var VERSI = 'sayur-app-v6';
+var VERSI = 'sayur-app-v7';
 
 var INTI = [
   './', './index.html', './sayur-app.html', './storage.js', './manifest.json',
