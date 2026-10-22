@@ -4595,6 +4595,11 @@ Pages.beranda = {title: 'Beranda — H. Mawih Sayur', run: function(){
   async function loadDashboard(){
     var cached = readJSON(STORE_DASHBOARD_CACHE);
     if(cached){
+      /* Cache dari hari lain: kartu "hari ini" dikosongkan, saldo/hutang/grafik tetap */
+      if(cached._tgl !== todayYmd()){
+        cached.lap = { totalOmzet:0, omzetCash:0, omzetQris:0, belanjaHariIni:0,
+                       totalBiaya:0, TotalPengeluaran:0, labaBersih:0 };
+      }
       App.dashboard = cached;
       render();
     } else {
@@ -4606,6 +4611,7 @@ Pages.beranda = {title: 'Beranda — H. Mawih Sayur', run: function(){
       var fresh = await SayurStorage.get('getDashboard', {tanggal: todayYmd()});
       if(fresh && fresh.lap && (Number(fresh.lap.totalOmzet) > 0 ||
          (fresh.rows && fresh.rows.length))){
+        fresh._tgl = todayYmd();
         App.dashboard = fresh;
         try{ localStorage.setItem(STORE_DASHBOARD_CACHE, JSON.stringify(fresh)); }catch(e){}
         render();
@@ -7713,15 +7719,30 @@ Pages.belanja = {title: 'Belanja — H. Mawih Sayur', run: function(){
       var self = this;
       var p = this.list.find(function(x){ return x.ID === self.currentId; });
       if(!p) return;
-      if((p.Pembayaran || []).length > 0){
-        toast('Tidak bisa hapus: ada pembayaran'); return;
+      var bayar = p.Pembayaran || [];
+      var totalBayar = bayar.reduce(function(s, x){ return s + (Number(x.Jumlah) || 0); }, 0);
+
+      var msg = 'Hapus pesanan ' + p.Nama + '?';
+      if(bayar.length){
+        msg += '\n\nPesanan ini sudah ada pembayaran ' + rp(totalBayar) + '.' +
+          '\nPembayaran dan catatan mutasi saldonya ikut dihapus, jadi saldo di Laporan bisa berkurang.' +
+          '\n\nTindakan ini tidak bisa dibatalkan.';
       }
-      if(!confirm('Hapus pesanan ' + p.Nama + '?')) return;
+      if(!confirm(msg)) return;
+
       try{
-        await SayurStorage.post('deletePesanan', {id: p.ID});
-        toast('✓ Dihapus');
+        var r = await SayurStorage.post('deletePesanan',
+          {id: p.ID, hapusPembayaran: bayar.length > 0});
         this.currentId = null;
-        await this.loadList();
+        if(r && r.queued){
+          /* offline: perintah masuk antrean HP, sembunyikan dulu dari daftar */
+          this.list = this.list.filter(function(x){ return x.ID !== p.ID; });
+          toast('Dihapus di HP, dikirim ke server saat online');
+        } else {
+          toast('✓ Pesanan dihapus');
+          await this.loadList();
+        }
+        await this.loadPiutang();
         this.render();
       }catch(e){ toast('Gagal: ' + e.message); }
     }
@@ -8192,6 +8213,7 @@ Pages.belanja = {title: 'Belanja — H. Mawih Sayur', run: function(){
           (st.lunas ? '' :
             '<button class="btn btn-secondary" id="notaTandaiLunas">' +
             'Tandai Lunas</button>') +
+          '<button class="btn btn-danger" id="notaHapus">Hapus Nota</button>' +
           '<button class="btn btn-ghost" data-close>Tutup</button>',
         afterRender: function(){
           var btnShare = $('notaDetailShare');
@@ -8205,6 +8227,24 @@ Pages.belanja = {title: 'Belanja — H. Mawih Sayur', run: function(){
               toast('✓ Nota ditandai lunas');
               closeDynamicSheet(ov);
               await self.loadList();
+              self.render();
+            }catch(e){ toast('Gagal: ' + e.message); }
+          });
+          var btnHapus = $('notaHapus');
+          if(btnHapus) btnHapus.addEventListener('click', async function(){
+            var label = nota.Nama ? nota.Nama : 'tanpa nama';
+            if(!confirm('Hapus nota ' + label + ' (' + rp(st.total) + ')?' +
+              '\n\nTindakan ini tidak bisa dibatalkan.')) return;
+            try{
+              var r = await SayurStorage.post('deleteNota', {id: id});
+              closeDynamicSheet(ov);
+              if(r && r.queued){
+                self.list = self.list.filter(function(x){ return x.ID !== id; });
+                toast('Dihapus di HP, dikirim ke server saat online');
+              } else {
+                toast('✓ Nota dihapus');
+                await self.loadList();
+              }
               self.render();
             }catch(e){ toast('Gagal: ' + e.message); }
           });
@@ -8470,17 +8510,9 @@ Pages.tutup = {title: 'Tutup Hari — H. Mawih Sayur', run: function(){
       return;
     }
     state.mode = 'baru';
-    var lap = bacaLaporan();
-    if(!lap.tunai && !lap.qris){
-      state.omzetCash = 2480000;
-      state.omzetQris = 0;
-      state.pagi.kk = 100000;
-      state.pagi.iuran = 50000;
-      state.pagi.konsumsi = 0;
-    } else {
-      state.omzetCash = lap.tunai;
-      state.omzetQris = lap.qris;
-    }
+    state.omzetCash = 0;
+    state.omzetQris = 0;
+    state.pagi = { kk: 0, iuran: 0, konsumsi: 0 };
     refreshFromBelanja();
   }
 
