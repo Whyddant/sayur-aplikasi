@@ -5121,6 +5121,20 @@ Pages.belanja = {title: 'Belanja — H. Mawih Sayur', run: function(){
     var hm = (hargaJual || 0) - 2000;
     return hm > 0 ? hm : 0;
   }
+  /* Rumus harga jual otomatis dari harga beli (modal). Satu sumber untuk semua tab.
+     Dipanggil setiap harga beli berubah; override manual hanya berlaku sampai harga beli berubah lagi. */
+  function rumusHargaJual(modal){
+    if(!modal || modal <= 0) return 0;
+    var rate;
+    if(modal <= 5000) rate = 1.00;
+    else if(modal <= 10000) rate = 1.00 + (0.50 - 1.00) * ((modal - 5000) / 5000);
+    else if(modal <= 30000) rate = 0.50 + (0.30 - 0.50) * ((modal - 10000) / 20000);
+    else if(modal <= 100000) rate = 0.30 + (0.15 - 0.30) * ((modal - 30000) / 70000);
+    else rate = 0.15;
+    var raw = modal * (1 + rate);
+    if(modal <= 30000) return Math.round(raw / 1000) * 1000;
+    return Math.ceil(raw / 5000) * 5000;
+  }
 
   var SEED_MASTER = [
     ['Kol',20,7500,11000,'kg'],
@@ -5639,6 +5653,12 @@ Pages.belanja = {title: 'Belanja — H. Mawih Sayur', run: function(){
       t.value = fmtNum(d.beli);
       /* Rencana adalah acuan: harga beli yang diubah di sini langsung jadi harga master */
       masterOf(el.dataset.nama).beli = d.beli;
+      /* Harga beli berubah -> harga jual kembali otomatis (menimpa override manual sebelumnya) */
+      if(d.beli > 0){
+        d.jual = rumusHargaJual(d.beli);
+        masterOf(el.dataset.nama).jual = d.jual;
+        el.querySelector('.harga-jual').value = fmtNum(d.jual);
+      }
     } else if(t.classList.contains('harga-jual')){
       d.jual = digits(t.value);
       t.value = fmtNum(d.jual);
@@ -6880,6 +6900,12 @@ Pages.belanja = {title: 'Belanja — H. Mawih Sayur', run: function(){
           var n = digits(t.value);
           items[i][f] = n;
           t.value = n ? n.toLocaleString('id-ID') : '';
+          if(f === 'hargaBeli' && n > 0){
+            var hjAuto = rumusHargaJual(n);
+            items[i].hargaJual = hjAuto;
+            var jEl = root.querySelector('[data-f="hargaJual"][data-i="' + i + '"]');
+            if(jEl) jEl.value = hjAuto.toLocaleString('id-ID');
+          }
         }
         FormKit.refreshItem(root, items, i);
         cb.onChange();
@@ -6908,7 +6934,13 @@ Pages.belanja = {title: 'Belanja — H. Mawih Sayur', run: function(){
           '<button class="btn btn-ghost" data-close>Batal</button>',
         afterRender: function(){
           bindMoneyInput('is_hj');
-          if(o.withBeli) bindMoneyInput('is_hb');
+          if(o.withBeli){
+            bindMoneyInput('is_hb');
+            $('is_hb').addEventListener('input', function(){
+              var b = digits(this.value), jj = $('is_hj');
+              if(b > 0 && jj) jj.value = rumusHargaJual(b).toLocaleString('id-ID');
+            });
+          }
           bindQtyStepper(document);
           if(!pf.nama){ var i = $('is_nama'); if(i) i.focus(); }
         }
@@ -7419,6 +7451,10 @@ Pages.belanja = {title: 'Belanja — H. Mawih Sayur', run: function(){
         afterRender: function(){
           bindMoneyInput('ei_h');
           bindMoneyInput('ei_hb');
+          $('ei_hb').addEventListener('input', function(){
+            var b = digits(this.value), jj = $('ei_h');
+            if(b > 0 && jj) jj.value = rumusHargaJual(b).toLocaleString('id-ID');
+          });
           bindQtyStepper(document);
         }
       });
@@ -7791,18 +7827,7 @@ Pages.belanja = {title: 'Belanja — H. Mawih Sayur', run: function(){
       }catch(e){ this.list = []; }
     },
 
-    hitungHargaJual(modal){
-      if(!modal || modal <= 0) return 0;
-      var rate;
-      if(modal <= 5000) rate = 1.00;
-      else if(modal <= 10000) rate = 1.00 + (0.50 - 1.00) * ((modal - 5000) / 5000);
-      else if(modal <= 30000) rate = 0.50 + (0.30 - 0.50) * ((modal - 10000) / 20000);
-      else if(modal <= 100000) rate = 0.30 + (0.15 - 0.30) * ((modal - 30000) / 70000);
-      else rate = 0.15;
-      var raw = modal * (1 + rate);
-      if(modal <= 30000) return Math.round(raw / 1000) * 1000;
-      return Math.ceil(raw / 5000) * 5000;
-    },
+    hitungHargaJual(modal){ return rumusHargaJual(modal); },
 
     parseQty: function(q){
       return Number(String(q || '').replace(/[^\d.]/g, '')) || 0;
